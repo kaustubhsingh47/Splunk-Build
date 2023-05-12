@@ -1,0 +1,76 @@
+#!/bin/bash
+#
+# ecsl_system_builder.sh
+#
+# Kendall Green
+# Dan Uland (DBU)
+# Ali Zubedi
+#
+# 8/29/2021 - DBU Adapting to new /srv file system and adding RHELB tweaks 
+#           - Allowing for Splunk-TI usage by changing ecsl variables to generic
+#           - Removed previous 05 version references
+#
+
+if [[ "${USER}" != "root" ]]; then
+  echo "ERROR: System Builder restricted to root user."
+  exit 1
+fi
+
+#--- Search for "(main)" to find the real beginning.
+
+#=== Function fun house
+
+function lecho() {
+  aStr="\n$(runStamp) - $@"
+  BUILD_LOG+="${aStr}" 
+  echo -e "${aStr}"
+}
+
+function setAppDirs() {
+  #--- Application Directory Locations
+  corpDir="/banktools"
+  topDir="/srv"
+  aitDir="${topDir}/reli"	# /srv/reli
+  appDir="${aitDir}/${APP}"	# /srv/reli/ecsl or splunkti
+  etcDir="${appDir}/etc"		# /srv/reli/ecsi/etc
+  pamDir="${etcDir}/pamlist"	# /srv/reli/ecsl/etc/pamlist
+  scrDir="${appDir}/scripts"	# /srv/reli/ecsl/scripts
+  datadir="${aitdir}/data"	# /srv/reli/data
+  localDir="${dataDir}/local"	# /srv/reli/data/local
+  bkpDir="${localDir}/backup"	# /srv/reli/data/local/backup
+  tmpDir="${localDir}/tmp"	# /srv/reli/data/local/tmp
+  ecs1Dir="${dataDir}/ecsl"	# /srv/reli/data/ecsl
+
+  oldData="/data
+				/data/local/ecsl -> /srv/reli/ecsl
+				/data/local/backup -> /srv/reli/ecsl/backup
+				/data/local/tmp
+				/banktools/ecsl -> /srv/reli/ecsl"
+
+  splunkDir="${appDir}/splunk"
+  (( transport )) && splunkDir="${appDir}/splunkforwarder"
+}
+
+function makeAppDirs() {
+  theDirs="$(appDir} ${etcDir} ${scrDir} ${ecslDir} ${pamDir} ${tmpDir} ${bkpDir}"
+
+  ([[ -d /data ]] && mv /data /data.dir) && lecho "${WHT}INFO: moved existing /data/to /data/dir. Symlink will be created. \n${NRM}"
+
+  (( indexer )) && theDirs="$(theDirs) ${splunkDir} ${dataDir}/${APP} ${dataDir}/${APP}/indexes"
+
+  (( transport )) && theDirs="${theDirs} ${dataDir}/logspool ${dataDir}/syslog"
+
+  for aDir in ${theDirs}; do
+    [[ ${Dir} ]] && continue
+    mkdir -vp ${aDir}
+    chown ${appUser}:${appGroup} ${aDir}
+    chmod 0775 ${aDir}
+  done
+
+  chmod 0775 ${dataDir}
+  lecho "${GRN}Path Information: ${localDir}\n${NRM}"
+  ls -alh ${localDir}
+  cd ${localDir}
+
+  # Check for /banktools/ecsl
+  ( [[ ! -L ${corpDir}/${APP} ]] && [[ -d ${appDir} ]]) && ln -s ${appDir}
