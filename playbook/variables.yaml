@@ -1,0 +1,14 @@
+---
+# vars.yml
+app_user: splunk
+app_group: splunk
+app_dir: /opt/splunk
+etc_dir: "{{ app_dir }}/etc"
+scripts_dir: "{{ app_dir }}/scripts"
+data_dir: "{{ app_dir }}/data"
+indexes_dir: "{{ data_dir }}/indexes"
+tmp_dir: "{{ app_dir }}/tmp"
+backup_dir: "{{ app_dir }}/backup"
+splunk_dir: "{{ app_dir }}/splunk"
+logspool_dir: "{{ app_dir }}/logspool"
+syslog_dir: "{{ app_dir }}/syslog"
