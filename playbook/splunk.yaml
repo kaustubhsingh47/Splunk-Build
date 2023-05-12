@@ -1,0 +1,49 @@
+- name: Create application directories
+  template:
+    src: ecsl_system_builder.sh.j2
+    dest: /usr/local/bin/ecsl_system_builder.sh
+    mode: 0755
+  become: yes
+
+- name: Create application directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: 0775
+  loop:
+    - "{{ app_dir }}"
+    - "{{ etc_dir }}"
+    - "{{ scripts_dir }}"
+    - "{{ data_dir }}"
+    - "{{ indexes_dir }}"
+    - "{{ tmp_dir }}"
+    - "{{ backup_dir }}"
+    - "{{ splunk_dir }}"
+    - "{{ logspool_dir }}"
+    - "{{ syslog_dir }}"
+  become: yes
+
+- name: Create symbolic links
+  file:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    state: link
+  loop:
+    - { src: "{{ data_dir }}", dest: "/data" }
+    - { src: "{{ data_dir }}/ecslnas", dest: "/data/ecslnas" }
+    - { src: "{{ data_dir }}/logspool", dest: "/data/logspool" }
+    - { src: "{{ data_dir }}/syslog", dest: "/data/syslog" }
+  when: ecsl
+  become: yes
+
+- name: Create Splunk frozen directory
+  file:
+    path: "{{ splunk_dir }}/frozen"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: 0775
+  when: splunk_ti and indexer
+  become: yes
