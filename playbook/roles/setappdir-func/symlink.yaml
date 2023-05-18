@@ -1,0 +1,80 @@
+- name: Make App Directories
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - vars.yaml
+
+
+  tasks:
+    - name: Define Directories
+      set_fact:
+        theDirs: "{{ appDir }} {{ etcDir }} {{ scrDir }} {{ ecslDir }} {{ pamDir }} {{ tmpDir }} {{ bkpDir }}"
+
+    - name: Move /data directory if it exists
+      command: mv /data /data.dir
+      args:
+        creates: /data.dir
+      changed_when: false
+      register: move_data_dir
+      ignore_errors: true
+
+    - name: Print move message
+      debug:
+        msg: "INFO: moved existing /data to /data.dir. Symlink will be created."
+
+    - name: Add additional directories for indexer
+      set_fact:
+        theDirs: "{{ theDirs.split() + [splunkDir, dataDir+'/'+APP, dataDir+'/'+APP+'/indexes'] }}"
+        #when: indexer
+
+    - name: Add additional directories for transport
+      set_fact:
+        theDirs: "{{ theDirs.split() + [dataDir+'/logspool', dataDir+'/syslog'] }}"
+        #when: transport
+
+    - name: Create App Directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ appUser }}"
+        group: "{{ appGroup }}"
+        mode: "0775"
+      with_items: "{{ theDirs.split() }}"
+      loop_control:
+        loop_var: aDir
+
+    - name: Change dataDir permissions
+      file:
+        path: "{{ dataDir }}"
+        state: directory
+        mode: "0775"
+
+    - name: Print Path Information
+      debug:
+        msg: "Path Information: {{ localDir }}"
+      vars:
+        localDir: "{{ localDir }}"
+
+    - name: List contents of localDir
+      command: ls -alh "{{ localDir }}"
+      args:
+        chdir: "{{ localDir }}"
+      changed_when: false
+
+    - name: Create symlink /banktools/ecsl
+      command: ln -s "{{ appDir }}" "{{ corpDir }}/{{ APP }}"
+      args:
+        creates: "{{ corpDir }}/{{ APP }}"
+      changed_when: false
+      register: create_symlink
+      failed_when: not (create_symlink.rc == 0 and not create_symlink.stderr)
+
+    - name: Print symlink error message
+      debug:
+        msg: "ERROR: banktools link not made"
+      when: create_symlink.failed
+
+    - name: Run makeSplunkfrozen for indexer
+      include_tasks: makeSplunkfrozen.yml
+      when: indexer
