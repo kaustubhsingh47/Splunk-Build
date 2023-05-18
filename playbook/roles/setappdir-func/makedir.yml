@@ -1,0 +1,62 @@
+- name: Make App Directories
+  hosts: all
+  vars_files:
+    - vars.yaml
+  tasks:
+    - name: Set theDirs variable
+      set_fact:
+        theDirs: "{{ appDir }} {{ etcDir }} {{ scrDir }} {{ ecslDir }} {{ pamDir }} {{ tmpDir }} {{ bkpDir }}"
+
+
+    - name: Print info message about moving /data directory
+      debug:
+        msg: "INFO: moved existing /data to /data.dir. Symlink will be created."
+
+    - name: Add additional directories to theDirs if indexer is true
+      set_fact:
+        theDirs: "{{ theDirs.split() + [splunkDir, dataDir+'/'+APP, dataDir+'/'+APP+'/indexes'] }}"
+        #when: indexer|bool
+
+        #- name: Add additional directories to theDirs if transport is true
+        #set_fact:
+        #theDirs: "{{ theDirs.split() + [dataDir+'/logspool', dataDir+'/syslog'] }}"
+        #when: transport|bool
+
+    - name: Create app directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ appUser }}"
+        group: "{{ appGroup }}"
+        mode: "0775"
+      loop: "{{ theDirs }}"
+      register: dir_created
+
+    - name: Print path information
+      debug:
+        msg: "Path Information: {{ localDir }}"
+      when: localDir is defined
+
+    - name: List contents of localDir
+      command: ls -alh "{{ localDir }}"
+      args:
+        chdir: "{{ localDir }}"
+      when: localDir is defined
+
+    - name: Create symbolic link for /banktools/ecsl
+      file:
+        src: "{{ appDir }}"
+        dest: "{{ corpDir }}/{{ APP }}"
+        state: link
+      when:
+        - corpDir+'/'+APP is not symlink
+        - appDir is directory
+
+    - name: Print error message if banktools link is not made
+      debug:
+        msg: "ERROR banktools link not made"
+      when: corpDir+'/'+APP is symlink | bool and appDir is not directory
+
+    - name: Execute makeSplunkfrozen task if indexer is true
+      include_tasks: makeSplunkfrozen.yml
+      when: indexer|bool
