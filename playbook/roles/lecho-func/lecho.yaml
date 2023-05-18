@@ -1,0 +1,24 @@
+- name: Execute lecho function
+  hosts: all
+  gather_facts: false
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Create formatted string
+      shell: >
+        echo -e "\n$(runStamp) - {{ item }}"
+      register: formatted_string
+      with_items:
+        - "{{ args }}"  # Assuming 'args' is a list of additional arguments
+
+    - name: Append formatted string to BUILD_LOG variable
+      set_fact:
+        BUILD_LOG: "{{ BUILD_LOG | default([]) + [item.stdout] }}"
+      with_items: "{{ formatted_string.results }}"
+
+    - name: Print formatted string
+      debug:
+        var: item.stdout
+      with_items: "{{ formatted_string.results }}"
