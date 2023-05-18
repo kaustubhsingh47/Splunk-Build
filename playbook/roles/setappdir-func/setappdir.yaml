@@ -1,0 +1,60 @@
+- name: Set Application Directory Locations
+  hosts: all
+  vars_files:
+    - vars.yaml
+
+
+  tasks:
+    - name: Create Application Directory
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ appDir }}"
+        - "{{ etcDir }}"
+        - "{{ pamDir }}"
+        - "{{ scrDir }}"
+        - "{{ dataDir }}"
+        - "{{ localDir }}"
+        - "{{ bkpDir }}"
+        - "{{ tmpDir }}"
+        - "{{ ecslDir }}"
+        - "{{ oldData }}/local/ecsl"
+        - "{{ oldData }}/local/backup"
+        - "{{ oldData }}/local/tmp"
+        - "{{ corpDir }}/ecsl"
+
+    - name: Create Splunk Directory
+      file:
+        path: "{{ splunkDir }}"
+        state: directory
+      vars:
+        splunkDir: "{{ appDir }}/splunk"
+
+    - name: Create Splunk Forwarder Directory
+      file:
+        path: "{{ splunkDir }}"
+        state: directory
+      vars:
+        splunkDir: "{{ appDir }}/splunkforwarder"
+
+
+
+    - name: Debug Application Directory Locations
+      debug:
+        msg: |
+          corpDir: {{ corpDir }}
+          topDir: {{ topDir }}
+          aitDir: {{ aitDir }}
+          appDir: {{ appDir }}
+          etcDir: {{ etcDir }}
+          pamDir: {{ pamDir }}
+          scrDir: {{ scrDir }}
+          dataDir: {{ dataDir }}
+          localDir: {{ localDir }}
+          bkpDir: {{ bkpDir }}
+          tmpDir: {{ tmpDir }}
+          ecslDir: {{ ecslDir }}
+          oldData: {{ oldData }}
+          splunkDir: {{ splunkDir }}
+          splunkDir_transport: {{ splunkDir_transport }}
