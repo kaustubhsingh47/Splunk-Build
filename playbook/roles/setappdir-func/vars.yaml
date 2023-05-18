@@ -1,0 +1,19 @@
+    corpDir: /banktools
+    topDir: /srv
+    aitDir: "{{ topDir }}/reli"     # /srv/reli
+    appDir: "{{ aitDir }}/{{ APP }}"    # /srv/reli/ecsl or splunkti
+    etcDir: "{{ appDir }}/etc"    # /srv/reli/ecsi/etc
+    pamDir: "{{ etcDir }}/pamlist"    # /srv/reli/ecsl/etc/pamlist  
+    scrDir: "{{ appDir }}/scripts"    # /srv/reli/ecsl/scripts      
+    dataDir: "{{ aitDir }}/data"    # /srv/reli/data
+    localDir: "{{ dataDir }}/local"    # /srv/reli/data/local       
+    bkpDir: "{{ localDir }}/backup"    # /srv/reli/data/local/backup
+    tmpDir: "{{ localDir }}/tmp"    # /srv/reli/data/local/tap      
+    ecslDir: "{{ dataDir }}/ecsl"    # /srv/reli/data/ecsl
+    oldData: /data
+    APP: "new"
+    splunkDir: "{{ appDir }}/splunk"
+    splunkDir_transport: "{{ appDir }}/splunkforwarder"
+
+    appUser: splunk
+    appGroup: splunk
