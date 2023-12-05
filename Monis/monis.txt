@@ -1,0 +1,113 @@
+Design Document for creating Terraform Modules/Templates for ExpressRoute : 
+
+ 
+
+Goal : 
+
+To leverage Azure ExpressRoute to facilitate the seamless onboarding of new applications or the migration of existing infrastructure to a next-generation environment within Azure. This involves establishing dedicated, high-throughput connections between on-premises networks and Azure, ensuring secure, reliable, and low-latency access for mission-critical workloads. 
+
+Here we provide a structured approach to implementing Azure ExpressRoute through Terraform Enterprises (TFE) and automate as much possible. This includes managing ExpressRoute connections, ports, peerings, and circuits in a scalable and efficient manner. Also, along with that here we are requesting for new subscription creation. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Background and Strategic Fit 
+
+Why are you doing this? 
+
+The deployment of Azure ExpressRoute is pivotal in facilitating a dedicated, high-throughput connection between on-premises networks and Azure. This endeavor is primarily aimed at enabling the seamless onboarding of new applications and the migration of existing infrastructure to a next-generation Azure environment. It ensures optimized performance, security, and reliability, critical for the successful integration of these applications and the continuity of operations during migration. As, public access is not allowed due possibly security breaches, the best alternative is to use Express route that allow the direct connectivity from bank’s network into Azure cloud. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+How does this relate to your overall design strategy? 
+
+Azure ExpressRoute strongly aligns with our overarching design strategy, emphasizing reliability, security, and performance optimization. By establishing dedicated connections, ExpressRoute ensures consistent service delivery, meeting our reliability benchmarks, while bolstering our security posture through stringent connectivity measures. It complements our strategy by providing a secure, scalable, and seamlessly integrated infrastructure environment within Azure. 
+
+ 
+What alternatives were considered? 
+
+During the evaluation process, several connectivity alternatives were considered. Public internet connectivity, though accessible, raised concerns about security vulnerabilities and potential performance issues for critical applications. VPN-based connections, while secure, were surpassed by ExpressRoute's dedicated, high-throughput links offering superior performance and stringent security measures. Direct WAN connections lacked the scalability and flexibility inherent in ExpressRoute, crucial for accommodating future growth and evolving business needs. 
+
+ 
+ 
+Overview : 
+
+Azure ExpressRoute is like a special, private road connecting our office network directly to Azure, the cloud platform. This connection is super important for us because we're either bringing in new applications or moving our existing bank app over to Azure for better performance and security. It's like having our very own express lane on the highway, just for our data. 
+
+This connection helps our new applications of our bank work smoothly and securely by providing a fast and stable link between our office and Azure. It ensures that when we're moving our existing stuff to Azure, like files or systems, nothing gets lost or interrupted along the way. 
+
+In simpler terms, it's like having a direct, secure pipeline between our bank and the powerful data center in the cloud. This overview also includes using Terraform, a tool we use to set things up in Azure. With Terraform, we're going to create and manage this ExpressRoute connection. It's like using a blueprint to build a solid, reliable bridge between our office and Azure, making sure everything works perfectly from the start. 
+ 
+
+Connectivity can be from an any-to-any (IP VPN) network, a point-to-point Ethernet network, or a virtual cross-connection through a connectivity provider at a colocation facility. ExpressRoute connections don't go over the public Internet. 
+
+“we are importing express route from azure (existing resource) using terraform which needs the Infra code we wrote for all the sub components of express route. Using SPN the terraform will authenticate and get the tfstate file in live state of the express route and then we can manage the peering orr adding other conectivity by making changes into the resource block of the express route doing terraform apply so it can deploy the changes into azure platform. 
+
+  
+
+SPN is created manually using app registration which contains the access of resources in that subscription, we can also give limited role to SPN like giving Viewer role to a particular resource(express route)”. 
+
+What is an SPN? 
+
+- A SPN stands for Service Principal Name. It's like a special identity or "user account" used by applications, services, or automated tasks (like Terraform) to access Azure resources. Think of it as a username and password specifically created for a program or script to interact with Azure without needing human intervention. 
+
+An SPN serves as a dedicated "user account" for automation tasks, granting specific permissions through Azure's role-based access control (RBAC). 
+
+How is SPN used with Terraform for Azure? 
+
+A SPN enables secure and automated management of Azure resources. Instead of using human credentials, Terraform utilizes the SPN's credentials (like a Client ID and Client Secret or a certificate) to authenticate and execute actions within Azure. 
+
+Setting up an SPN for Terraform: 
+
+Creating an SPN involves configuring it within Azure Active Directory (AD), assigning it a specific role to access designated resources. These credentials are then securely stored and utilized within Terraform's configuration to enable seamless and secure communication between Terraform and Azure. 
+
+In essence, the SPN streamlines the interaction between Terraform and Azure, providing a secure and controlled way for Terraform to manage resources without compromising security. 
+
+ 
+
+ExpressRoute Connection 
+
+The ExpressRoute Connection is like the starting point of our dedicated road to Azure. It's where we establish the link between our office network and Azure. It defines the parameters including the  WAN, hub, route gateway, route connection, bandwidth, and tier of service. This connection specifies details like the location, the size of the connection, and what kind of service tier we're using. Think of it as setting up the entry point to our super-fast, secure highway to Azure. 
+
+ExpressRoute Port 
+
+The ExpressRoute Port is like the toll booth on our private road to Azure. It's the gateway where our data enters and exits. This port determines the size, type of the connection, like whether it's a basic or premium port also, location, peering location, bandwidth in mbps, encapsulation, sku. It's crucial because it's where our data goes through, ensuring it's smooth and efficient, like having the right-sized door for our data traffic. 
+
+ExpressRoute Peering 
+
+ExpressRoute Peering is like the different lanes or paths within our private road. It's where we decide how different parts of our network connect to Azure. It contains of various parameters like circuit peering, peering configurations, primary & secondary peering for ipv6. There are different types of peering: private and Microsoft. Private peering is like having a direct, secure connection between specific parts of our network and Azure, while Microsoft peering allows us to access Microsoft services like Office 365 through our ExpressRoute. 
+
+ExpressRoute Circuit 
+
+The ExpressRoute Circuit is the core of our private road system. It's like the main highway that carries all our data between our office and Azure. This circuit is where we define the bandwidth, service provider, and other critical settings. It's the backbone of our connection, ensuring a smooth flow of data without any bottlenecks. 
+
+ 
+An ExpressRoute virtual network gateway helps to exchange IP routes between your Azure and on-premises networks and to route network traffic. To connect to virtual networks in Azure with ExpressRoute, you'll need to create a virtual network gateway. 
+
+Interaction between Components: 
+
+Connection and Port: The ExpressRoute Connection and Port work hand-in-hand. The Connection establishes the link, while the Port manages the entry and exit points for data. 
+
+Peering and Circuit: Peering configurations (Private and Microsoft) determine the paths for data exchange. These paths utilize the underlying ExpressRoute Circuit, ensuring secure and optimized connections based on the configured settings. 
+
+Overall Connectivity: Collectively, these components work together, orchestrated by the ExpressRoute Circuit, to create a secure, high-performance pathway between on-premises networks and Azure for the bank app. They ensure data flows seamlessly, allowing access to specific Azure resources or Microsoft services based on the configured peering types. 
+
+ 
+ 
